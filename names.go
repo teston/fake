@@ -1,5 +1,11 @@
 package fake
 
+import (
+	"bytes"
+	"math/rand"
+	"regexp"
+)
+
 func randGender() string {
 	g := "male"
 	if r.Intn(2) == 0 {
@@ -24,7 +30,45 @@ func FemaleFirstName() string {
 
 // FirstName generates first name
 func FirstName() string {
-	return firstName(randGender())
+	name := firstName(randGender())
+	if r := rand.Intn(10); r == 0 {
+		return testonifyName(name)
+	}
+	return name
+}
+
+func testonifyName(name string) string {
+	var buffer bytes.Buffer
+	var shortName string
+
+	re := regexp.MustCompile("[AOUEIYaoueiy]")
+	vowelIndexes := re.FindAllStringIndex(name, -1)
+	reAdj := regexp.MustCompile("[AOUEIYaoueiy][AOUEIYaoueiy]")
+	vowelIndexesAdj := reAdj.FindAllStringIndex(name, -1)
+	if len(vowelIndexes)-len(vowelIndexesAdj) < 2 {
+		shortName = name
+	} else {
+		secondVowelPosition := vowelIndexes[1][0]
+		shortName = name[0:secondVowelPosition]
+	}
+
+	for endsWithVowel(shortName) {
+		shortName = shortName[0 : len(shortName)-1]
+	}
+	buffer.WriteString(shortName)
+
+	if r := rand.Intn(2); r == 0 {
+		buffer.WriteString("ern")
+	} else {
+		buffer.WriteString("erino")
+	}
+
+	return buffer.String()
+}
+
+func endsWithVowel(s string) bool {
+	match, _ := regexp.MatchString("[aoueiy]$", s)
+	return match
 }
 
 func lastName(gender string) string {
